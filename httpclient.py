@@ -18,6 +18,8 @@
 # Write your own HTTP GET and POST
 # The point is to understand what you have to send and get experience with it
 
+# https://docs.python.org/2/library/urlparse.html
+
 import sys
 import socket
 import re
@@ -36,17 +38,24 @@ class HTTPClient(object):
     #def get_host_port(self,url):
 
     def connect(self, host, port):
-        # use sockets!
-        return None
+        # Using Sockets from the OS to make clients. From Lab2
+        # socket.AF_INET means use this socket to communicate to the internet
+        # socket.SOCK_STREAM means we want to use TCP!
+        clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        clientSocket.connect((host, port))
+        return clientSocket
 
     def get_code(self, data):
-        return None
+        # Extract the code from the HTTP/1.1 xxx ????
+        return int(data.split(" ")[1])
 
     def get_headers(self,data):
-        return None
+        # extract the response body, splits by CR+LF then joins the latter half.
+        return "".join(data.split("\r\n\r\n")[0])
 
     def get_body(self, data):
-        return None
+        # extract the response body, splits by CR+LF then joins the latter half.
+        return "".join(data.split("\r\n\r\n")[1:])
 
     # read everything from the socket
     def recvall(self, sock):
@@ -60,14 +69,48 @@ class HTTPClient(object):
                 done = not part
         return str(buffer)
 
+    def splitUrl(self, str):
+        stringy = str.split("/")
+        # Skip http: / _ /
+        if(stringy[0].lower()=="http:"):
+            return stringy[2:]
+        return stringy
+        
+    def getRootUrl(self, url):
+        parsed = self.splitUrl(url)
+        return parsed[0];
+        
+    def getLocUrl(self,url):
+        parsed = self.splitUrl(url)
+        return "/" + "/".join(parsed[1:])
+        
     def GET(self, url, args=None):
-        code = 500
-        body = ""
+        code = "222"
+        body = "aaa"
+        print(str(code))
+        print(body)
         return HTTPResponse(code, body)
-
+        
     def POST(self, url, args=None):
-        code = 500
-        body = ""
+        urlRoot = self.getRootUrl(url)
+        urlRootPort = urlRoot.split(":")
+        urlLoc = self.getLocUrl(url)
+        if(len(urlRootPort) == 2):
+            clientSock = self.connect(urlRootPort[0], int(urlRootPort[1]))
+        else:
+            clientSock = self.connect(urlRoot, 80)
+        postHttpHost = "POST " + urlLoc + " HTTP/1.1\r\nHost: " + urlRoot + "\r\n"
+        argsEncoded = ""
+        if(args != None):
+            argsEncoded = urllib.urlencode(args)
+        contTyp = "content-type: application/x-www-form-urlencoded\r\n"
+        # contLen = "content-length: " + str(sys.getsizeof(argsEncoded)) + "\r\n"
+        contLen = "content-length: " + str(len(argsEncoded)) + "\r\n"
+        toSend = postHttpHost + contLen + contTyp + "\r\n" + argsEncoded + "\r\n\r\n"
+        clientSock.sendall(toSend);
+        response = self.recvall(clientSock)
+        code = self.get_code(response)
+        body = self.get_body(response)
         return HTTPResponse(code, body)
 
     def command(self, url, command="GET", args=None):
@@ -83,6 +126,6 @@ if __name__ == "__main__":
         help()
         sys.exit(1)
     elif (len(sys.argv) == 3):
-        print client.command( sys.argv[2], sys.argv[1] )
+        httpResponse = client.command( sys.argv[2], sys.argv[1] )
     else:
-        print client.command( sys.argv[1] )   
+        print client.command( sys.argv[1] )

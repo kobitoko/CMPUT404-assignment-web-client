@@ -37,8 +37,11 @@ class HTTPClient(object):
         # If address doesnt have a port, handle this case, e.g. check for ":" in url
         rootUrl = self.getRootUrl(url)
         urlRootPort = rootUrl.split(":")
-        if(len(urlRootPort) == 2): 
-            return urlRootPort[1]
+        if(len(urlRootPort) == 2):
+            print(urlRootPort[1])
+            return int(urlRootPort[1])
+        else:
+            return 80
     
     def connect(self, host, port):
         # Using Sockets from the OS to make clients. From Lab2
@@ -81,7 +84,10 @@ class HTTPClient(object):
         
     def getRootUrl(self, url):
         parsed = self.splitUrl(url)
-        return parsed[0];
+        if(":" in parsed[0]):
+            rootPort = parsed[0].split(":")
+            return rootPort[0]
+        return parsed[0]
         
     def getLocUrl(self,url):
         parsed = self.splitUrl(url)
@@ -96,12 +102,10 @@ class HTTPClient(object):
         
     def POST(self, url, args=None):
         urlRoot = self.getRootUrl(url)
-        urlRootPort = self.get_host_port(urlRoot)
+        urlPort = self.get_host_port(url)
         urlLoc = self.getLocUrl(url)
-        if(len(urlRootPort) == 2):
-            clientSock = self.connect(urlRootPort[0], int(urlRootPort[1]))
-        else:
-            clientSock = self.connect(urlRoot, 80)
+        print("aaaaa: "+urlRoot + " port " + str(urlPort))
+        clientSock = self.connect(urlRoot, urlPort)
         postHttpHost = "POST " + urlLoc + " HTTP/1.1\r\nHost: " + urlRoot + "\r\n"
         argsEncoded = ""
         if(args != None):

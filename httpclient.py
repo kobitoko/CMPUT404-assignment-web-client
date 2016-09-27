@@ -37,7 +37,8 @@ class HTTPClient(object):
         # If address doesnt have a port, handle this case, e.g. check for ":" in url
         # cuz getRootUrl only returns the IP and NOT port. i cutt of the port
         urlRootPort = self.splitPortUrl(url)
-        if(len(urlRootPort) == 2):
+        print("-".join(urlRootPort))
+        if(len(urlRootPort) == 2 and urlRootPort[1]!=""):
             return int(urlRootPort[1])
         else:
             return 80
@@ -81,11 +82,12 @@ class HTTPClient(object):
             return stringy[2:]
         return stringy
         
+    # if ":" was found, returns a list of length 2, otherwise returns the string of the str.
     def splitPortUrl(self, str):
         parsed = self.splitUrl(str)
         if(":" in parsed[0]):
-            rootPort = parsed[0].split(":")
-        return rootPort
+            return parsed[0].split(":")
+        return [parsed[0], ""]
         
     def getRootUrl(self, url):
         return self.splitPortUrl(url)[0]
@@ -95,17 +97,29 @@ class HTTPClient(object):
         return "/" + "/".join(parsed[1:])
         
     def GET(self, url, args=None):
-        code = int("555")
-        body = "NOT YET IMPLEMENT. YUR"
-        print(str(code))
-        print(body)
+        urlRoot= self.getRootUrl(url)
+        urlPort = self.get_host_port(url)
+        urlLoc = self.getLocUrl(url)
+        clientSock = self.connect(urlRoot,urlPort)
+        urlArgs = ""
+        if (args!=None):
+            if(urlLoc[-1] == "/"):
+                urlLoc = urlLoc[0:-1]
+                print("REMOVED / " + urlLoc)
+            urlArgs= "?" + urllib.urlencode(args)
+            print "\n"+urlArgs+"\n"
+        getHTTPHost = "GET " +urlLoc+urlArgs+" HTTP/1.1\r\nHost: " + urlRoot+"\r\n\r\n"
+        print "\naAFSASFFASASF: "+getHTTPHost
+        clientSock.sendall(getHTTPHost)
+        response = self.recvall(clientSock)
+        code = self.get_code(response)
+        body = self.get_body(response)
         return HTTPResponse(code, body)
         
     def POST(self, url, args=None):
         urlRoot = self.getRootUrl(url)
         urlPort = self.get_host_port(url)
         urlLoc = self.getLocUrl(url)
-        print("aaaaa: "+urlRoot + " port " + str(urlPort))
         clientSock = self.connect(urlRoot, urlPort)
         postHttpHost = "POST " + urlLoc + " HTTP/1.1\r\nHost: " + urlRoot + "\r\n"
         argsEncoded = ""

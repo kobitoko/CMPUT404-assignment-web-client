@@ -18,8 +18,6 @@
 # Write your own HTTP GET and POST
 # The point is to understand what you have to send and get experience with it
 
-# https://docs.python.org/2/library/urlparse.html
-
 import sys
 import socket
 import re
@@ -35,8 +33,13 @@ class HTTPResponse(object):
         self.body = body
 
 class HTTPClient(object):
-    #def get_host_port(self,url):
-
+    def get_host_port(self,url):
+        # If address doesnt have a port, handle this case, e.g. check for ":" in url
+        rootUrl = self.getRootUrl(url)
+        urlRootPort = rootUrl.split(":")
+        if(len(urlRootPort) == 2): 
+            return urlRootPort[1]
+    
     def connect(self, host, port):
         # Using Sockets from the OS to make clients. From Lab2
         # socket.AF_INET means use this socket to communicate to the internet
@@ -85,15 +88,15 @@ class HTTPClient(object):
         return "/" + "/".join(parsed[1:])
         
     def GET(self, url, args=None):
-        code = "222"
-        body = "aaa"
+        code = int("555")
+        body = "NOT YET IMPLEMENT. YUR"
         print(str(code))
         print(body)
         return HTTPResponse(code, body)
         
     def POST(self, url, args=None):
         urlRoot = self.getRootUrl(url)
-        urlRootPort = urlRoot.split(":")
+        urlRootPort = self.get_host_port(urlRoot)
         urlLoc = self.getLocUrl(url)
         if(len(urlRootPort) == 2):
             clientSock = self.connect(urlRootPort[0], int(urlRootPort[1]))
@@ -127,5 +130,6 @@ if __name__ == "__main__":
         sys.exit(1)
     elif (len(sys.argv) == 3):
         httpResponse = client.command( sys.argv[2], sys.argv[1] )
+        print(httpResponse)
     else:
         print client.command( sys.argv[1] )

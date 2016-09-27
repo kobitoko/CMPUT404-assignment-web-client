@@ -37,7 +37,6 @@ class HTTPClient(object):
         # If address doesnt have a port, handle this case, e.g. check for ":" in url
         # cuz getRootUrl only returns the IP and NOT port. i cutt of the port
         urlRootPort = self.splitPortUrl(url)
-        print("-".join(urlRootPort))
         if(len(urlRootPort) == 2 and urlRootPort[1]!=""):
             return int(urlRootPort[1])
         else:
@@ -105,11 +104,8 @@ class HTTPClient(object):
         if (args!=None):
             if(urlLoc[-1] == "/"):
                 urlLoc = urlLoc[0:-1]
-                print("REMOVED / " + urlLoc)
             urlArgs= "?" + urllib.urlencode(args)
-            print "\n"+urlArgs+"\n"
         getHTTPHost = "GET " +urlLoc+urlArgs+" HTTP/1.1\r\nHost: " + urlRoot+"\r\n\r\n"
-        print "\naAFSASFFASASF: "+getHTTPHost
         clientSock.sendall(getHTTPHost)
         response = self.recvall(clientSock)
         code = self.get_code(response)

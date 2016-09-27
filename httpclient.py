@@ -35,10 +35,9 @@ class HTTPResponse(object):
 class HTTPClient(object):
     def get_host_port(self,url):
         # If address doesnt have a port, handle this case, e.g. check for ":" in url
-        rootUrl = self.getRootUrl(url)
-        urlRootPort = rootUrl.split(":")
+        # cuz getRootUrl only returns the IP and NOT port. i cutt of the port
+        urlRootPort = self.splitPortUrl(url)
         if(len(urlRootPort) == 2):
-            print(urlRootPort[1])
             return int(urlRootPort[1])
         else:
             return 80
@@ -82,12 +81,14 @@ class HTTPClient(object):
             return stringy[2:]
         return stringy
         
-    def getRootUrl(self, url):
-        parsed = self.splitUrl(url)
+    def splitPortUrl(self, str):
+        parsed = self.splitUrl(str)
         if(":" in parsed[0]):
             rootPort = parsed[0].split(":")
-            return rootPort[0]
-        return parsed[0]
+        return rootPort
+        
+    def getRootUrl(self, url):
+        return self.splitPortUrl(url)[0]
         
     def getLocUrl(self,url):
         parsed = self.splitUrl(url)

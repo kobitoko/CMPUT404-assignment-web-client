@@ -110,6 +110,7 @@ class HTTPClient(object):
         response = self.recvall(clientSock)
         code = self.get_code(response)
         body = self.get_body(response)
+        print(response)
         return HTTPResponse(code, body)
         
     def POST(self, url, args=None):
@@ -129,6 +130,7 @@ class HTTPClient(object):
         response = self.recvall(clientSock)
         code = self.get_code(response)
         body = self.get_body(response)
+        print(response)
         return HTTPResponse(code, body)
 
     def command(self, url, command="GET", args=None):
